@@ -6,6 +6,7 @@ import com.safeflow.domain.model.Incident;
 import com.safeflow.domain.model.RecordLog;
 import com.safeflow.domain.model.valueobjects.DeliveryState;
 import com.safeflow.domain.model.valueobjects.InputDataSensor;
+import com.safeflow.domain.services.validate.ValidateSensorStrategyImplements;
 import com.safeflow.repository.*;
 import com.safeflow.service.RecordService;
 import com.safeflow.service.dto.RecordLogSummary;
@@ -54,36 +55,53 @@ public class RecordServiceImpl implements RecordService {
 
     @Override
     public RecordLog createRecord(RecordLog record) {
+        System.out.println("=== [createRecord] - INICIO ===");
+        System.out.println("Record recibido: " + record);
+
         Optional<Delivery> delivery = deliveryRepository.findById(record.getDeliveryId());
         if (delivery.isEmpty()) {
+            System.out.println("[ERROR] Delivery no encontrado: deliveryId=" + record.getDeliveryId());
             throw new RuntimeException("Delivery not found");
         }
+
         DeliveryState state = delivery.get().getState();
+        System.out.println("Estado de Delivery: " + state);
         if (state == DeliveryState.PENDING || state == DeliveryState.COMPLETED) {
+            System.out.println("[ERROR] Delivery en estado inválido para recibir records: " + state);
             throw new RuntimeException("Delivery cannot accept records in this state: " + state);
         }
 
-
-        //generacion de input para strategy
+        // generación de input para strategy
         InputDataSensor inputDataSensor = new InputDataSensor(
-                record.getGasValue(),
-                record.getTemperatureValue(),
-                record.getHeartRateValue(),
+                record.getHeartRateValue(),   // BPM primero
+                record.getGasValue(),         // luego gas
+                record.getTemperatureValue(), // luego temperatura
                 record.getLatitude(),
                 record.getLongitude()
         );
+
+
         Device sensor = sensorRepository.findById(record.getSensorId())
-                .orElseThrow(() -> new RuntimeException("Sensor not found"));
-        //validacion de estado de sensor
+                .orElseThrow(() -> {
+                    return new RuntimeException("Sensor not found");
+                });
+
+        // validación de estado de sensor
+        boolean ok = ValidateSensorStrategyImplements.isValid(inputDataSensor);
+
+        sensor.updateSafeState(inputDataSensor);
         sensor.updateSafeState(inputDataSensor);
 
         if (!sensor.isSafe()) {
+            System.out.println("Sensor NO está seguro. Guardando sensor e incidente...");
 
-            //actualizacion de estado de sensor a inseguro para front
             sensorRepository.save(sensor);
-            //generacion de incidente
+
             String place = geolocationService.getDisplayNameFromCoordinates(record.getLatitude(), record.getLongitude());
+            System.out.println("Lugar del incidente: " + place);
+
             String description = record.generateDescription(place, sensor, inputDataSensor);
+            System.out.println("Descripción de incidente: " + description);
 
             Incident incident = Incident.builder()
                     .incidentPlace(place)
@@ -93,15 +111,21 @@ public class RecordServiceImpl implements RecordService {
                     .build();
 
             incidentRepository.save(incident);
-            //IMPLEMENTAR NOTIFICACION
+            System.out.println("Incidente guardado: " + incident);
 
-        }else {
+            // IMPLEMENTAR NOTIFICACION
+
+        } else {
+            System.out.println("Sensor está seguro. Guardando sensor...");
             sensor.isTrue();
-            sensorRepository.save(sensor);        }
+            sensorRepository.save(sensor);
+        }
 
-
-        //guardado de record
-        return recordRepository.save(record);
+        // guardado de record
+        RecordLog savedRecord = recordRepository.save(record);
+        System.out.println("Record guardado: " + savedRecord);
+        System.out.println("=== [createRecord] - FIN ===");
+        return savedRecord;
     }
 
 }
