@@ -7,7 +7,7 @@ public class ValidateGasSensorType implements ValidateSensorStrategy {
     @Override
     public boolean validateSensorType(InputDataSensor input) {
         Float value = input.gasValue();
-        return value <= 10 || value >= 40;
+        return value != null && value >= 10.0 && value <= 40.0;
 
     }
 }
