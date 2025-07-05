@@ -95,7 +95,11 @@ public class RecordServiceImpl implements RecordService {
             incidentRepository.save(incident);
             //IMPLEMENTAR NOTIFICACION
 
-        }
+        }else {
+            sensor.isTrue();
+            sensorRepository.save(sensor);        }
+
+
         //guardado de record
         return recordRepository.save(record);
     }
