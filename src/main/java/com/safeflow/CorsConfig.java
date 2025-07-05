@@ -27,3 +27,4 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowCredentials(false)       // No permite credenciales cuando origins="*"
                 .maxAge(3600);
     }
+}
