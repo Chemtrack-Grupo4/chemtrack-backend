@@ -21,10 +21,9 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:4200", "https://safeflow-v1.netlify.app")
-                .allowedMethods("GET", "POST", "PUT", "DELETE")
-                .allowedHeaders("*")
-                .allowCredentials(true)
+                .allowedOrigins("*")           // Permite cualquier origen
+                .allowedMethods("*")           // Permite cualquier método (GET, POST, PUT, DELETE, OPTIONS, etc)
+                .allowedHeaders("*")           // Permite cualquier header
+                .allowCredentials(false)       // No permite credenciales cuando origins="*"
                 .maxAge(3600);
     }
-}
