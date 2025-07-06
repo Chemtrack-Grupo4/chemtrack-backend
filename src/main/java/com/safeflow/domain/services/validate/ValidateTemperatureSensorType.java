@@ -8,6 +8,6 @@ public class ValidateTemperatureSensorType implements ValidateSensorStrategy {
     public boolean validateSensorType(InputDataSensor input) {
         Float value = input.temperatureValue();
 
-        return value != null && value >= -50.0 && value <= 100.0;
+        return value != null && value >= -50.0 && value <= 50.0;
     }
 }

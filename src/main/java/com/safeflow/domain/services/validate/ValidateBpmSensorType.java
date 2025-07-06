@@ -7,6 +7,6 @@ public class ValidateBpmSensorType implements ValidateSensorStrategy {
     @Override
     public boolean validateSensorType(InputDataSensor input) {
         Float value = input.heartRateValue();
-        return value != null && value >= 40.0 && value <= 160.0;
+        return value != null && value >= 40.0 && value <= 120.0;
     }
 }
