@@ -16,16 +16,16 @@ public class ValidateSensorStrategyImplements {
         StringBuilder errors = new StringBuilder();
 
         if (!gasValidator.validateSensorType(entrada)) {
-            errors.append("Gas value is invalid. ");
+            errors.append("El valor del Gas esta alterado. ");
         }
         if (!tempValidator.validateSensorType(entrada)) {
-            errors.append("Temperature value is invalid. ");
+            errors.append("La temperatura esta en valores anomalos. ");
         }
         if (!gpsValidator.validateSensorType(entrada)) {
             errors.append("Coordinates are invalid. ");
         }
         if (!bpmValidator.validateSensorType(entrada)) {
-            errors.append("Heart rate value is invalid. ");
+            errors.append("El ritmo Cardiaco esta anomalo. ");
         }
 
         if (errors.isEmpty()) {
